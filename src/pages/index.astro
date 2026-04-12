@@ -1,11 +1,50 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Le code entre les trois tirets est le "Frontmatter" (JavaScript)
+const bride = "Louise";
+const groom = "Benj";
+const date = "06 Septembre 2025";
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<title>{bride} & {groom} | Mariage</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Montserrat:wght@200;400&display=swap" rel="stylesheet">
+	</head>
+	<body class="bg-creme text-foret font-sans">
+		
+		<!-- Hero Section -->
+		<main class="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+			<div class="mb-12 border border-foret/20 p-2 rounded-t-full">
+				<div class="bg-[url('https://images.unsplash.com/photo-1523438885200-e635ba2c371e')] bg-cover w-64 h-96 rounded-t-full shadow-inner"></div>
+			</div>
+			
+			<h1 class="font-serif italic text-7xl md:text-9xl text-bourgogne mb-4">
+				{bride} <span class="text-3xl font-sans not-italic text-terracotta">&</span> {groom}
+			</h1>
+			
+			<p class="tracking-[0.3em] uppercase text-sm mt-8 border-y border-foret/30 py-4 px-8">
+				{date} — Le Domaine des Chênes
+			</p>
+
+			<div class="mt-20 animate-pulse text-terracotta">
+				Scroll
+			</div>
+		</main>
+
+		<!-- Section Abstract / Geek -->
+		<section class="max-w-2xl mx-auto py-32 px-8">
+			<h2 class="font-serif italic text-4xl text-center mb-12">Abstract</h2>
+			<p class="text-lg leading-relaxed text-justify first-letter:text-5xl first-letter:font-serif first-letter:mr-3 first-letter:float-left">
+				Après une analyse rigoureuse de nos données expérimentales et plusieurs années de peer-reviewing amical, 
+				nous avons conclu que notre union présentait un niveau de confiance supérieur à 99.9%. 
+				Nous vous invitons à la présentation officielle de ces résultats.
+			</p>
+		</section>
+
+	</body>
+</html>
