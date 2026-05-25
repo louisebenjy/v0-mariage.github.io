@@ -16,90 +16,183 @@
     // Initialize the game engine and set the sky color
     kaboom({ background: [135, 206, 235] });
 
-    // Define the main game scene
-    scene("game", () => {
+    // Global state to store answers
+    const globalAnswers = {};
+
+    // Define the levels/questions
+    const levels = [
+        {
+            id: "wedding",
+            question: "Will you attend our Wedding?",
+            options: [
+                { text: "YES", value: "YES, I will be there!", color: [50, 205, 50] },
+                { text: "NO", value: "NO, sadly I cannot.", color: [220, 20, 60] }
+            ]
+        },
+        {
+            id: "brunch",
+            question: "Will you join us for Sunday Brunch?",
+            options: [
+                { text: "YES", value: "Yes, I love brunch!", color: [50, 205, 50] },
+                { text: "NO", value: "No, recovering from the party.", color: [220, 20, 60] }
+            ]
+        }
+    ];
+
+    scene("level", ({ levelIndex }) => {
+        const levelData = levels[levelIndex];
+
         // 1. ADD THE GROUND
         add([
             rect(width(), 50),
             pos(0, height() - 50),
-            area(), // Gives it a physical hitbox
-            body({ isStatic: true }), // Gravity won't pull it down, and things can stand on it
-            color(34, 139, 34) // Grass green
+            area(),
+            body({ isStatic: true }),
+            color(34, 139, 34)
         ]);
 
-        // 2. ADD INSTRUCTIONS
+        // 2. ADD INSTRUCTIONS & QUESTION
         add([
-            text("Use Left/Right to move. UP to jump!\nSmash your answer from below.", { size: 24, align: "center" }),
-            pos(width() / 2, 50),
+            text(levelData.question, { size: 48, align: "center", width: width() - 100 }),
+            pos(width() / 2, 80),
             anchor("center"),
             color(0, 0, 0)
         ]);
-
-        
-        // 3. ADD THE PLAYER (Now a guaranteed visible red square!)
-    const player = add([
-        rect(40, 40),         // A 40x40 pixel square
-        pos(80, 40),          // Starting X and Y position
-        color(255, 50, 50),   // Bright red color so it stands out
-        area(),               // Gives the character a hitbox for collisions
-        body(),               // Adds gravity and physics
-    ]);
-        // 4. ADD THE RSVP BLOCKS
-        // 'Yes' Block
-        const yesBlock = add([
-            rect(120, 80),
-            pos(width() / 2 - 200, height() - 250),
-            area(),
-            body({ isStatic: true }),
-            color(50, 205, 50), // Green
-            "rsvp_block", // A custom tag we will use for collision detection
-            { choice: "YES, I will be there!" } // Custom data attached to this block
+        add([
+            text("Groom (Z, Q, D) | Bride (Arrows)\nHit a block to lock your answer, then walk RIGHT to proceed.", { size: 24, align: "center" }),
+            pos(width() / 2, 160),
+            anchor("center"),
+            color(50, 50, 50)
         ]);
-        add([text("YES", { size: 32 }), pos(width() / 2 - 165, height() - 225), color(255,255,255)]);
 
-        // 'No' Block
-        const noBlock = add([
-            rect(120, 80),
-            pos(width() / 2 + 80, height() - 250),
-            area(),
-            body({ isStatic: true }),
-            color(220, 20, 60), // Red
-            "rsvp_block",
-            { choice: "NO, sadly I cannot." }
-        ]);
-        add([text("NO", { size: 32 }), pos(width() / 2 + 125, height() - 225), color(255,255,255)]);
-
-        // 5. ADD MOVEMENT & PHYSICS
+        // 3. ADD THE PLAYERS
         const SPEED = 320;
         const JUMP_FORCE = 800;
         setGravity(1600);
 
-        onKeyDown("left", () => { player.move(-SPEED, 0); });
-        onKeyDown("right", () => { player.move(SPEED, 0); });
-        
-        onKeyPress("up", () => { 
-            if (player.isGrounded()) { player.jump(JUMP_FORCE); } 
+        // Player 1 (Groom - ZQSD)
+        const p1 = add([
+            text("🤵", { size: 64 }),
+            pos(100, height() - 150),
+            area(),
+            body(),
+            "player"
+        ]);
+
+        // Player 2 (Bride - Arrows)
+        const p2 = add([
+            text("👰", { size: 64 }),
+            pos(200, height() - 150),
+            area(),
+            body(),
+            "player"
+        ]);
+
+        // Movement for Player 1
+        onKeyDown("q", () => { p1.move(-SPEED, 0); });
+        onKeyDown("d", () => { p1.move(SPEED, 0); });
+        onKeyPress("z", () => { if (p1.isGrounded()) { p1.jump(JUMP_FORCE); } });
+
+        // Movement for Player 2
+        onKeyDown("left", () => { p2.move(-SPEED, 0); });
+        onKeyDown("right", () => { p2.move(SPEED, 0); });
+        onKeyPress("up", () => { if (p2.isGrounded()) { p2.jump(JUMP_FORCE); } });
+
+        // 4. ADD THE RSVP BLOCKS
+        const blockSpacing = 300;
+        const startX = width() / 2 - ((levelData.options.length - 1) * blockSpacing) / 2;
+
+        levelData.options.forEach((opt, idx) => {
+            const blockX = startX + idx * blockSpacing;
+            const blockY = height() - 250;
+            
+            const block = add([
+                rect(120, 80),
+                pos(blockX, blockY),
+                anchor("center"),
+                area(),
+                body({ isStatic: true }),
+                color(opt.color[0], opt.color[1], opt.color[2]),
+                "rsvp_block",
+                { choiceValue: opt.value, choiceId: levelData.id }
+            ]);
+
+            add([
+                text(opt.text, { size: 32 }), 
+                pos(blockX, blockY), 
+                anchor("center"),
+                color(255,255,255)
+            ]);
+            
+            // Show checkmark if already answered
+            if (globalAnswers[levelData.id] === opt.value) {
+                add([
+                    text("✅", { size: 40 }),
+                    pos(blockX, blockY - 80),
+                    anchor("center")
+                ]);
+            }
         });
 
-        // 6. COLLISION DETECTION (The "Mario" smash)
-        // When the player collides with anything tagged "rsvp_block"...
-        player.onCollide("rsvp_block", (block, collision) => {
-            // ...check if the collision happened on the BOTTOM of the block
+        // 5. COLLISION DETECTION
+        onCollide("player", "rsvp_block", (p, block, collision) => {
             if (collision.isBottom()) {
                 // Flash the block briefly
+                const origColor = block.color;
                 block.color = rgb(255, 255, 255);
-                // Wait 0.1 seconds, then go to the end screen
                 wait(0.1, () => {
-                    go("success", block.choice);
+                    block.color = origColor;
                 });
+                
+                // Record the answer
+                globalAnswers[block.choiceId] = block.choiceValue;
+                
+                // Visual feedback (Checkmark)
+                add([
+                    text("✅", { size: 40 }),
+                    pos(block.pos.x, block.pos.y - 80),
+                    anchor("center")
+                ]);
+            }
+        });
+
+        // 6. SCREEN TRANSITIONS
+        onUpdate(() => {
+            // Check if any player went off the right side
+            if (p1.pos.x > width() || p2.pos.x > width()) {
+                if (levelIndex < levels.length - 1) {
+                    go("level", { levelIndex: levelIndex + 1 });
+                } else {
+                    go("end");
+                }
+            }
+            
+            // Check if any player went off the left side
+            if ((p1.pos.x < 0 || p2.pos.x < 0) && levelIndex > 0) {
+                go("level", { levelIndex: levelIndex - 1 });
+            }
+            
+            // Constrain left edge on first level
+            if (levelIndex === 0) {
+                if (p1.pos.x < 0) p1.pos.x = 0;
+                if (p2.pos.x < 0) p2.pos.x = 0;
             }
         });
     });
 
-    // Define the success scene (what happens after hitting a block)
-    scene("success", (choice) => {
+    // End scene to show summary
+    scene("end", () => {
+        let summaryText = "RSVP RECORDED:\n\n";
+        
+        levels.forEach(l => {
+            const ans = globalAnswers[l.id] || "No answer";
+            summaryText += `${l.question}\n-> ${ans}\n\n`;
+        });
+        
+        summaryText += "(Later, this will send an email/DB update!)";
+
         add([
-            text(`RSVP RECORDED:\n\n${choice}\n\n(Later, this will send an email/DB update!)`, { 
+            text(summaryText, { 
                 size: 32, 
                 align: "center",
                 width: width() - 100 
@@ -108,10 +201,44 @@
             anchor("center"),
             color(0, 0, 0)
         ]);
+        
+        // Allow going back
+        add([
+            text("Walk left to change answers", { size: 24 }),
+            pos(width() / 2, height() - 50),
+            anchor("center"),
+            color(50, 50, 50)
+        ]);
+        
+        const p = add([
+            text("👰🤵", { size: 64 }),
+            pos(width() / 2, height() - 150),
+            area(),
+            body(),
+            "player"
+        ]);
+        
+        onKeyDown("left", () => { p.move(-320, 0); });
+        onKeyDown("q", () => { p.move(-320, 0); });
+        setGravity(1600);
+        
+        add([
+            rect(width(), 50),
+            pos(0, height() - 50),
+            area(),
+            body({ isStatic: true }),
+            color(34, 139, 34)
+        ]);
+
+        onUpdate(() => {
+            if (p.pos.x < 0) {
+                go("level", { levelIndex: levels.length - 1 });
+            }
+        });
     });
 
     // Start the game!
-    go("game");
+    go("level", { levelIndex: 0 });
 </script>
 </body>
 </html>
