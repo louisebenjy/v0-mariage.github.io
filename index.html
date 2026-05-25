@@ -16,9 +16,6 @@
     // Initialize the game engine and set the sky color
     kaboom({ background: [135, 206, 235] });
 
-    // Load a built-in character sprite (a little bean)
-    loadBean();
-
     // Define the main game scene
     scene("game", () => {
         // 1. ADD THE GROUND
@@ -38,14 +35,15 @@
             color(0, 0, 0)
         ]);
 
-        // 3. ADD THE PLAYER
-        const player = add([
-            sprite("bean"),
-            pos(80, height() - 100),
-            area(),
-            body(), // Affected by gravity
-        ]);
-
+        
+        // 3. ADD THE PLAYER (Now a guaranteed visible red square!)
+    const player = add([
+        rect(40, 40),         // A 40x40 pixel square
+        pos(80, 40),          // Starting X and Y position
+        color(255, 50, 50),   // Bright red color so it stands out
+        area(),               // Gives the character a hitbox for collisions
+        body(),               // Adds gravity and physics
+    ]);
         // 4. ADD THE RSVP BLOCKS
         // 'Yes' Block
         const yesBlock = add([
